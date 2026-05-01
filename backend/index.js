@@ -13,8 +13,11 @@ app.get('/', (req, res) => {
 })
 
 // Routes (we will add these as we build)
-// app.use('/api/auth', require('./src/routes/auth'))
+app.use('/api/auth', require('./src/routes/auth'))
 // app.use('/api/projects', require('./src/routes/projects'))
+
+app.use('/api/auth', require('./src/routes/auth'))
+console.log('Auth routes loaded')
 
 const PORT = process.env.PORT || 3001
 
