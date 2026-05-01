@@ -7,65 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      Role     @default(DESIGNER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  projects  Project[]
-  approvals Approval[]
-}
-
-model Project {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  status      ProjectStatus @default(ACTIVE)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  phases      Phase[]
-}
-
-model Phase {
-  id        String    @id @default(cuid())
-  type      PhaseType
-  status    PhaseStatus @default(DRAFT)
-  data      Json?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  projectId String
-  project   Project   @relation(fields: [projectId], references: [id])
-  documents Document[]
-  approvals Approval[]
-}
-
-model Document {
-  id        String   @id @default(cuid())
-  title     String
-  type      String
-  content   Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  phaseId   String
-  phase     Phase    @relation(fields: [phaseId], references: [id])
-}
-
-model Approval {
-  id        String         @id @default(cuid())
-  status    ApprovalStatus @default(PENDING)
-  comments  String?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  phaseId   String
-  phase     Phase          @relation(fields: [phaseId], references: [id])
-  userId    String
-  user      User           @relation(fields: [userId], references: [id])
-}
+// ===========================
+// ENUMS FIRST
+// ===========================
 
 enum Role {
   DESIGNER
@@ -97,4 +41,327 @@ enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum RiskRating {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Difficulty {
+  EASY
+  STRAIGHTFORWARD
+  DIFFICULT
+  VERY_DIFFICULT
+}
+
+enum Frequency {
+  RARELY
+  BIANNUALLY
+  QUARTERLY
+  MONTHLY
+  WEEKLY
+  DAILY
+}
+
+enum Importance {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum GapType {
+  NO_GAP
+  SIMPLE
+  COMPLEX
+}
+
+enum OptionType {
+  NO_ACTION
+  NON_LD
+  LD_NON_TRAINING
+  LD_TRAINING
+}
+
+enum OutputType {
+  TRS
+  LDS
+}
+
+// ===========================
+// CORE MODELS
+// ===========================
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  name      String
+  role      Role       @default(DESIGNER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  projects  Project[]
+  approvals Approval[]
+}
+
+model Project {
+  id           String        @id @default(cuid())
+  title        String
+  description  String?
+  status       ProjectStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  phases       Phase[]
+  analysePhase AnalysePhase?
+}
+
+model Phase {
+  id        String      @id @default(cuid())
+  type      PhaseType
+  status    PhaseStatus @default(DRAFT)
+  data      Json?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  projectId String
+  project   Project     @relation(fields: [projectId], references: [id])
+  approvals Approval[]
+}
+
+model Approval {
+  id        String         @id @default(cuid())
+  status    ApprovalStatus @default(PENDING)
+  comments  String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  phaseId   String
+  phase     Phase          @relation(fields: [phaseId], references: [id])
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+}
+
+// ===========================
+// ANALYSE PHASE MODELS
+// ===========================
+
+model AnalysePhase {
+  id                String                   @id @default(cuid())
+  status            PhaseStatus              @default(DRAFT)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  projectId         String                   @unique
+  project           Project                  @relation(fields: [projectId], references: [id])
+  inputAnalysis     InputAnalysis?
+  jobTaskProfile    JobTaskProfile?
+  jobSpecification  JobSpecification?
+  targetPopulation  TargetPopulationProfile?
+  gapAnalysis       GapAnalysisStatement?
+  feasibilityReport FeasibilityReport?
+  analyseOutput     AnalyseOutput?
+  riskAssessment    RiskAssessment?
+}
+
+model InputAnalysis {
+  id                    String       @id @default(cuid())
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  analysePhaseId        String       @unique
+  analysePhase          AnalysePhase @relation(fields: [analysePhaseId], references: [id])
+  triggerLegislative    Boolean      @default(false)
+  triggerPolicy         Boolean      @default(false)
+  triggerNewCapability  Boolean      @default(false)
+  triggerLessonsLearnt  Boolean      @default(false)
+  triggerLearningReview Boolean      @default(false)
+  triggerWorkplaceEval  Boolean      @default(false)
+  triggerBusinessSkill  Boolean      @default(false)
+  triggerCultural       Boolean      @default(false)
+  triggerOther          Boolean      @default(false)
+  triggerOtherDetails   String?
+  projectBackground     String?
+  currentStatus         String?
+  linkedActivities      String?
+  sadlAppropriate       Boolean?
+  analyseRequired       Boolean?
+  scopeNotes            String?
+  requiredDeliverables  String?
+  stakeholderNeeds      String?
+  timeFactors           String?
+  resourcesRequired     String?
+  rolesResponsibilities String?
+  communicationProcess  String?
+  oqeProvided           Boolean?
+  oqeNotes              String?
+}
+
+model RiskAssessment {
+  id                 String       @id @default(cuid())
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  analysePhaseId     String       @unique
+  analysePhase       AnalysePhase @relation(fields: [analysePhaseId], references: [id])
+  projectBackground  String?
+  sadlProcessUsed    String?
+  sadlProcessOmitted String?
+  rationaleOmissions String?
+  risksOmissions     String?
+  mitigationActions  String?
+  residualRisk       String?
+  overallRiskRating  RiskRating   @default(LOW)
+}
+
+model JobTaskProfile {
+  id                    String       @id @default(cuid())
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  analysePhaseId        String       @unique
+  analysePhase          AnalysePhase @relation(fields: [analysePhaseId], references: [id])
+  jobTitle              String?
+  jobDescription        String?
+  organisationalContext String?
+  licenceRequired       Boolean      @default(false)
+  licenceDetails        String?
+  tasks                 JobTask[]
+}
+
+model JobTask {
+  id               String         @id @default(cuid())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  jobTaskProfileId String
+  jobTaskProfile   JobTaskProfile @relation(fields: [jobTaskProfileId], references: [id])
+  taskNumber       Int
+  taskDescription  String
+  conditions       String?
+  standards        String?
+  difficulty       Difficulty     @default(STRAIGHTFORWARD)
+  frequency        Frequency      @default(MONTHLY)
+  importance       Importance     @default(MEDIUM)
+  subTasks         SubTask[]
+}
+
+model SubTask {
+  id          String  @id @default(cuid())
+  jobTaskId   String
+  jobTask     JobTask @relation(fields: [jobTaskId], references: [id])
+  description String
+  taskNumber  Int
+}
+
+model JobSpecification {
+  id                  String       @id @default(cuid())
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  analysePhaseId      String       @unique
+  analysePhase        AnalysePhase @relation(fields: [analysePhaseId], references: [id])
+  jobTitle            String?
+  numberOfPositions   Int?
+  locationOfPositions String?
+  anticipatedTurnover String?
+  importanceLevel     String?
+  classification      String?
+  interRelationships  String?
+  requiredMateriel    String?
+  physicalConditions  String?
+  physicalDemands     String?
+  attributesRequired  String?
+  careerFactors       String?
+}
+
+model TargetPopulationProfile {
+  id                       String       @id @default(cuid())
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+  analysePhaseId           String       @unique
+  analysePhase             AnalysePhase @relation(fields: [analysePhaseId], references: [id])
+  jobDesignation           String?
+  jobSituation             String?
+  jobDescription           String?
+  jobFunction              String?
+  jobOwner                 String?
+  workEnvironment          String?
+  employmentClassification String?
+  geographicDistribution   String?
+  qualifications           String?
+  aptitudes                String?
+  competencies             String?
+  academicAbility          String?
+  physicalCharacteristics  String?
+  learningMethods          String?
+  motivation               String?
+  otherCharacteristics     String?
+}
+
+model GapAnalysisStatement {
+  id             String             @id @default(cuid())
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  analysePhaseId String             @unique
+  analysePhase   AnalysePhase       @relation(fields: [analysePhaseId], references: [id])
+  gapExists      Boolean            @default(false)
+  gapType        GapType            @default(SIMPLE)
+  gapSummary     String?
+  recommendation String?
+  gapItems       GapItem[]
+  overTraining   OverTrainingItem[]
+}
+
+model GapItem {
+  id                       String               @id @default(cuid())
+  gapAnalysisId            String
+  gapAnalysis              GapAnalysisStatement @relation(fields: [gapAnalysisId], references: [id])
+  taskReference            String?
+  taskDescription          String?
+  targetPopulationCapacity String?
+  identifiedGap            String?
+  currentLearningOutcome   String?
+  difRating                String?
+}
+
+model OverTrainingItem {
+  id              String               @id @default(cuid())
+  gapAnalysisId   String
+  gapAnalysis     GapAnalysisStatement @relation(fields: [gapAnalysisId], references: [id])
+  learningOutcome String?
+  assessment      String?
+}
+
+model FeasibilityReport {
+  id             String              @id @default(cuid())
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  analysePhaseId String              @unique
+  analysePhase   AnalysePhase        @relation(fields: [analysePhaseId], references: [id])
+  analysisProcess String?
+  unitsConsulted String?
+  recommendation String?
+  options        FeasibilityOption[]
+}
+
+model FeasibilityOption {
+  id                  String            @id @default(cuid())
+  feasibilityReportId String
+  feasibilityReport   FeasibilityReport @relation(fields: [feasibilityReportId], references: [id])
+  optionType          OptionType        @default(NO_ACTION)
+  optionDescription   String?
+  advantages          String?
+  disadvantages       String?
+  risks               String?
+  mitigationActions   String?
+  recommended         Boolean           @default(false)
+}
+
+model AnalyseOutput {
+  id               String         @id @default(cuid())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  analysePhaseId   String         @unique
+  analysePhase     AnalysePhase   @relation(fields: [analysePhaseId], references: [id])
+  outputType       OutputType     @default(TRS)
+  generatedContent Json?
+  approvalStatus   ApprovalStatus @default(PENDING)
+  approvalComments String?
 }
