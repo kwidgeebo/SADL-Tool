@@ -42,6 +42,8 @@ export default function A1InputAnalysis({ analysePhase, onSave, onNext, saving }
     oqeNotes: existing.oqeNotes || "",
   })
 
+  const [showOutput, setShowOutput] = useState(false)
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     setForm(prev => ({
@@ -324,6 +326,93 @@ export default function A1InputAnalysis({ analysePhase, onSave, onNext, saving }
         </div>
       </div>
 
+{/* AP1 Output Preview */}
+{existing.projectBackground && (
+  <div className="border border-gray-200 rounded-xl overflow-hidden">
+    <button
+      onClick={() => setShowOutput(!showOutput)}
+      className="w-full flex items-center justify-between px-6 py-4 bg-gray-50 hover:bg-gray-100 transition"
+    >
+      <span className="font-semibold text-gray-800">📄 View AP1 — Analyse Phase Scoping Form</span>
+      <span className="text-gray-400 text-sm">{showOutput ? "Hide ▲" : "Show ▼"}</span>
+    </button>
+
+    {showOutput && (
+      <div className="p-6 space-y-4 text-sm text-gray-700">
+        <div className="grid grid-cols-2 gap-4">
+          <div><span className="font-medium">Project:</span> {analysePhase?.project?.title}</div>
+          <div><span className="font-medium">Date:</span> {new Date().toLocaleDateString('en-AU')}</div>
+        </div>
+
+        <hr />
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Training Triggers</p>
+          <ul className="list-disc list-inside space-y-1">
+            {triggers.filter(t => existing[t.key]).map(t => (
+              <li key={t.key}>{t.label}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Project Background</p>
+          <p className="whitespace-pre-wrap">{existing.projectBackground}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Current Status</p>
+          <p className="whitespace-pre-wrap">{existing.currentStatus}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Linked Activities</p>
+          <p className="whitespace-pre-wrap">{existing.linkedActivities}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Scope</p>
+          <p className="whitespace-pre-wrap">{existing.scopeNotes}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Required Deliverables</p>
+          <p className="whitespace-pre-wrap">{existing.requiredDeliverables}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Stakeholder Needs</p>
+          <p className="whitespace-pre-wrap">{existing.stakeholderNeeds}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Time Factors</p>
+          <p className="whitespace-pre-wrap">{existing.timeFactors}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Resources Required</p>
+          <p className="whitespace-pre-wrap">{existing.resourcesRequired}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Roles and Responsibilities</p>
+          <p className="whitespace-pre-wrap">{existing.rolesResponsibilities}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">Communication Process</p>
+          <p className="whitespace-pre-wrap">{existing.communicationProcess}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-800 mb-1">OQE Notes</p>
+          <p className="whitespace-pre-wrap">{existing.oqeNotes}</p>
+        </div>
+      </div>
+    )}
+  </div>
+)}
       {/* Navigation */}
       <div className="flex justify-end pt-4 border-t border-gray-100">
         <button

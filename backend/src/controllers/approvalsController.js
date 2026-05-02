@@ -130,7 +130,8 @@ const rejectAnalysePhase = async (req, res) => {
   } catch (error) {
     console.error('Reject analyse phase error:', error)
     res.status(500).json({ message: 'Server error' })
-
+  }
+}
 
 module.exports = {
   getPendingApprovals,
