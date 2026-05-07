@@ -118,6 +118,7 @@ model Project {
   user         User          @relation(fields: [userId], references: [id])
   phases       Phase[]
   analysePhase AnalysePhase?
+  designPhase  DesignPhase? 
 }
 
 model Phase {
@@ -361,6 +362,366 @@ model AnalyseOutput {
   analysePhaseId   String         @unique
   analysePhase     AnalysePhase   @relation(fields: [analysePhaseId], references: [id])
   outputType       OutputType     @default(TRS)
+  generatedContent Json?
+  approvalStatus   ApprovalStatus @default(PENDING)
+  approvalComments String?
+}
+
+// ===========================
+// DESIGN PHASE ENUMS
+// ===========================
+
+enum TrainingLevel {
+  LEVEL_1
+  LEVEL_2
+  LEVEL_3
+  LEVEL_4
+}
+
+enum DeliveryMethod {
+  INSTRUCTOR_LED
+  SELF_PACED
+  BLENDED
+  ON_JOB
+  SIMULATION
+  E_LEARNING
+  OTHER
+}
+
+enum AssessmentMethod {
+  OBSERVATION
+  WRITTEN_TEST
+  PRACTICAL_EXERCISE
+  PORTFOLIO
+  ORAL_QUESTIONING
+  SIMULATION_EXERCISE
+  OTHER
+}
+
+enum KirkpatrickLevel {
+  LEVEL_1_REACTION
+  LEVEL_2_LEARNING
+  LEVEL_3_BEHAVIOUR
+  LEVEL_4_RESULTS
+}
+
+
+// ===========================
+// DESIGN PHASE MODELS
+// ===========================
+
+model DesignPhase {
+  id                   String                @id @default(cuid())
+  status               PhaseStatus           @default(DRAFT)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  projectId            String                @unique
+  project              Project               @relation(fields: [projectId], references: [id])
+  des1InputAnalysis    Des1InputAnalysis?
+  des2Environments     Des2Environments?
+  des3LearningOutcomes Des3LearningOutcomes?
+  des4CourseStructure  Des4CourseStructure?
+  designOutput         DesignOutput?
+}
+
+// ---
+// Des1 — Input Analysis
+// Confirms documents reviewed, stakeholders, scope, updated risk for Design Phase
+// ---
+model Des1InputAnalysis {
+  id                    String      @id @default(cuid())
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  designPhaseId         String      @unique
+  designPhase           DesignPhase @relation(fields: [designPhaseId], references: [id])
+
+  // Documents Reviewed
+  trsReviewed           Boolean     @default(false)
+  trsReference          String?
+  jobTaskProfileReviewed Boolean    @default(false)
+  targetPopulationReviewed Boolean  @default(false)
+  gapAnalysisReviewed   Boolean     @default(false)
+  feasibilityReviewed   Boolean     @default(false)
+  otherDocsReviewed     Boolean     @default(false)
+  otherDocsDetails      String?
+
+  // Stakeholders
+  stakeholders          String?
+  smePanel              String?
+  trainingAuthority     String?
+  projectSponsor        String?
+
+  // Scope Confirmation
+  designRequired        Boolean?
+  scopeNotes            String?
+  designDeliverables    String?
+  phasesOmitted         String?
+  rationaleOmissions    String?
+
+  // Updated Risk Assessment
+  riskNotes             String?
+  residualRisk          String?
+  overallRiskRating     RiskRating  @default(LOW)
+  mitigationActions     String?
+
+  // Resources and Timeline
+  timeFactors           String?
+  resourcesRequired     String?
+  rolesResponsibilities String?
+  communicationProcess  String?
+}
+
+// ---
+// Des2 — Environments Analysis
+// Produces the Environments Profile (DesP2)
+// ---
+model Des2Environments {
+  id                    String      @id @default(cuid())
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  designPhaseId         String      @unique
+  designPhase           DesignPhase @relation(fields: [designPhaseId], references: [id])
+
+  // Facility
+  facilityDescription   String?
+  facilityAccess        String?
+  facilityLocation      String?
+
+  // Activity Spaces
+  activitySpaces        String?
+  classroomCapacity     String?
+  simulatorAccess       String?
+  outdoorSpaces         String?
+
+  // Resources
+  equipmentAvailable    String?
+  technologyInfrastructure String?
+  learningMaterials     String?
+
+  // Staff
+  instructorAvailability String?
+  instructorQualifications String?
+  supportStaff          String?
+
+  // Finances
+  budgetAvailable       String?
+  costConstraints       String?
+  fundingSource         String?
+
+  // Legislation and Policy
+  relevantLegislation   String?
+  whsRequirements       String?
+  accessibilityRequirements String?
+  securityRequirements  String?
+}
+
+// ---
+// Des3 — Learning Outcomes
+// The heart of the Design Phase — produces the full LO set
+// ---
+model Des3LearningOutcomes {
+  id                    String            @id @default(cuid())
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  designPhaseId         String            @unique
+  designPhase           DesignPhase       @relation(fields: [designPhaseId], references: [id])
+  mappingMatrixApplies  Boolean           @default(false)
+  mappingMatrixNotes    String?
+  learningOutcomes      LearningOutcome[]
+}
+
+model LearningOutcome {
+  id                    String              @id @default(cuid())
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  des3Id                String
+  des3                  Des3LearningOutcomes @relation(fields: [des3Id], references: [id])
+  sequence              Int
+  loName                String?
+
+  // Five components
+  performanceStatement  String?
+  performanceConditions String?
+  performanceStandard   String?
+  assessmentCriteria    String?
+  contentSummary        String?
+
+  // Additional LMP fields
+  trainingLevel         TrainingLevel       @default(LEVEL_1)
+  deliveryMethod        DeliveryMethod      @default(INSTRUCTOR_LED)
+  prerequisiteLOs       String?
+  relatedAssessments    String?
+  uocReference          String?             // VET Competency Unit — N/A if no formal qualification
+  resources             String?
+  references            String?
+
+  // Duration (manually entered by designer)
+  durationOnJobHours    Float?
+  durationOnJobDays     Float?
+  durationOffJobHours   Float?
+  durationOffJobDays    Float?
+  durationSummativeOnJobHours Float?
+  durationSummativeOnJobDays  Float?
+  durationSummativeOffJobHours Float?
+  durationSummativeOffJobDays  Float?
+  durationFormativeOffJobHours Float?
+  durationFormativeOffJobDays  Float?
+  durationOtherHours    Float?
+  durationOtherDays     Float?
+  durationOtherType     String?
+}
+
+// ---
+// Des4 — Course Structure
+// Assessment strategy, programme structure, evaluation plan, resources
+// ---
+model Des4CourseStructure {
+  id                    String      @id @default(cuid())
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  designPhaseId         String      @unique
+  designPhase           DesignPhase @relation(fields: [designPhaseId], references: [id])
+
+  // Assessment Strategy
+  formativeStrategy     String?
+  summativeStrategy     String?
+  assessorQualifications String?
+  assessmentNotes       String?
+
+  // Programme Structure
+  courseAim             String?
+  courseDescription     String?
+  courseOverview        String?
+  modules               Module[]
+
+  // Learning Methods and Media
+  primaryDeliveryMethod DeliveryMethod @default(INSTRUCTOR_LED)
+  deliveryNotes         String?
+  learningMethods       String?
+  mediaRequirements     String?
+
+  // Evaluation Plan
+  evaluationPlan        EvaluationPlan[]
+
+  // Course-level duration (rolled up, manually entered)
+  totalOnJobHours       Float?
+  totalOffJobHours      Float?
+  totalDays             Float?
+
+  // Resource Requirements (feeds Section 3 of LMP)
+  humanResources        String?
+  physicalResources     String?
+  defenceSupportRequirements String?
+  financialRequirements String?
+  otherRequirements     String?
+
+  // Section 1 LMP fields
+  minStudents           Int?
+  maxStudents           Int?
+  courseLevel           String?
+  courseType            String?
+  servicePrerequisites  String?
+  qualificationPrerequisites String?
+  securityClearance     String?
+  courseTargets         String?
+  eligibilityDetails    String?
+  additionalInformation String?
+  trainingAuthorityDetails String?
+  accreditationBody     String?
+  avetmissInfo          String?
+  authorityToUse        String?
+  ipHolders             String?
+  specialInstructions   String?
+}
+
+model Module {
+  id                    String              @id @default(cuid())
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  des4Id                String
+  des4                  Des4CourseStructure @relation(fields: [des4Id], references: [id])
+  sequence              Int
+  moduleId              String?             // e.g. "1", "1.1"
+  moduleName            String?
+  moduleContent         String?
+  prerequisiteModules   String?
+  deliveryMethod        DeliveryMethod      @default(INSTRUCTOR_LED)
+  keyResources          String?
+  whsRequirements       String?
+  additionalComments    String?
+  loAssignments         String?             // JSON array of LO ids assigned to this module
+
+  // Duration (manually entered)
+  durationOnJobHours    Float?
+  durationOnJobDays     Float?
+  durationOffJobHours   Float?
+  durationOffJobDays    Float?
+  durationSummativeOnJobHours  Float?
+  durationSummativeOnJobDays   Float?
+  durationSummativeOffJobHours Float?
+  durationSummativeOffJobDays  Float?
+  durationFormativeOffJobHours Float?
+  durationFormativeOffJobDays  Float?
+  durationOtherHours    Float?
+  durationOtherDays     Float?
+  durationOtherType     String?
+
+  // Formative and summative assessments for this module
+  formativeAssessments  FormativeAssessment[]
+  summativeAssessments  SummativeAssessment[]
+}
+
+model FormativeAssessment {
+  id              String  @id @default(cuid())
+  moduleId        String
+  module          Module  @relation(fields: [moduleId], references: [id])
+  faId            String?
+  faName          String?
+  loAssessed      String?
+  method          AssessmentMethod @default(OBSERVATION)
+  description     String?
+  assessmentCriteria String?
+  additionalComments String?
+  durationHours   Float?
+  durationDays    Float?
+}
+
+model SummativeAssessment {
+  id              String  @id @default(cuid())
+  moduleId        String
+  module          Module  @relation(fields: [moduleId], references: [id])
+  saId            String?
+  saName          String?
+  loAssessed      String?
+  method          AssessmentMethod @default(WRITTEN_TEST)
+  description     String?
+  assessmentCriteria String?
+  uocReference    String?
+  additionalComments String?
+  durationHours   Float?
+  durationDays    Float?
+}
+
+model EvaluationPlan {
+  id                String              @id @default(cuid())
+  des4Id            String
+  des4              Des4CourseStructure @relation(fields: [des4Id], references: [id])
+  kirkpatrickLevel  KirkpatrickLevel
+  planDescription   String?
+  timing            String?
+  responsibility    String?
+}
+
+// ---
+// Des5 — Design Output
+// Compiled Draft LMP — progressive assembly, Des5 is review/finalise only
+// ---
+model DesignOutput {
+  id               String         @id @default(cuid())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  designPhaseId    String         @unique
+  designPhase      DesignPhase    @relation(fields: [designPhaseId], references: [id])
   generatedContent Json?
   approvalStatus   ApprovalStatus @default(PENDING)
   approvalComments String?
