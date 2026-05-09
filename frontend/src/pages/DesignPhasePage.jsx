@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate  } from "react-router-dom"
 import axios from "axios"
 import Des1InputAnalysis from "../components/design/Des1InputAnalysis"
 import Des2Environments from "../components/design/Des2Environments"
@@ -34,6 +34,7 @@ const steps = [
 
 export default function DesignPhasePage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(0)
   const [designPhase, setDesignPhase] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -138,12 +139,19 @@ export default function DesignPhasePage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Design Phase</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          {designPhase?.project?.title || ""}
-        </p>
-      </div>
+      {/* Header */}
+<div className="mb-8">
+  <button
+    onClick={() => navigate(`/projects/${id}`)}
+    className="text-gray-500 hover:text-gray-700 text-sm mb-3 inline-block"
+  >
+    ← Back to Project
+  </button>
+  <h1 className="text-2xl font-bold text-gray-900">Design Phase</h1>
+  <p className="text-gray-500 text-sm mt-1">
+    {designPhase?.project?.title || ""}
+  </p>
+</div>
 
       {/* Step Progress */}
       <div className="flex items-start gap-2 mb-8 overflow-x-auto pb-2">

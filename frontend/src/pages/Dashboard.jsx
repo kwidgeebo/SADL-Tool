@@ -11,12 +11,14 @@ export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [projects, setProjects] = useState([])
-  const [pendingApprovals, setPendingApprovals] = useState([])
+  const [pendingAnalyse, setPendingAnalyse] = useState([])
+  const [pendingDesign, setPendingDesign] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchData = async () => {
@@ -30,7 +32,8 @@ export default function Dashboard() {
           axios.get(`${API_URL}/api/approvals/pending`, { headers })
         ])
         setProjects(projectsRes.data)
-        setPendingApprovals(approvalsRes.data)
+        setPendingAnalyse(approvalsRes.data.pendingAnalyse || [])
+        setPendingDesign(approvalsRes.data.pendingDesign || [])
       } else {
         const res = await axios.get(`${API_URL}/api/projects`, { headers })
         setProjects(res.data)
@@ -51,6 +54,8 @@ export default function Dashboard() {
     setProjects([newProject, ...projects])
   }
 
+  const hasPending = pendingAnalyse.length > 0 || pendingDesign.length > 0
+
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-white shadow-sm px-8 py-4 flex justify-between items-center">
@@ -68,21 +73,22 @@ export default function Dashboard() {
       <main className="max-w-5xl mx-auto px-8 py-10">
 
         {/* Manager — Pending Approvals */}
-        {user?.role === "MANAGER" && pendingApprovals.length > 0 && (
+        {user?.role === "MANAGER" && hasPending && (
           <div className="mb-10">
             <h2 className="text-xl font-bold text-gray-800 mb-2">Pending Approvals</h2>
             <p className="text-gray-500 mb-4">These projects are awaiting your review.</p>
             <div className="space-y-3">
-              {pendingApprovals.map(project => (
+
+              {pendingAnalyse.map(project => (
                 <div
-                  key={project.id}
+                  key={`analyse-${project.id}`}
                   onClick={() => navigate(`/approvals/analyse/${project.id}`)}
                   className="bg-white border-l-4 border-yellow-400 rounded-xl p-5 cursor-pointer hover:shadow-md transition flex justify-between items-center"
                 >
                   <div>
                     <h3 className="font-semibold text-gray-800">{project.title}</h3>
                     <p className="text-sm text-gray-500 mt-0.5">
-                      Submitted by {project.user.name} — Analyse Phase awaiting approval
+                      Submitted by {project.user.name} — <span className="font-medium text-yellow-700">Analyse Phase</span> awaiting approval
                     </p>
                   </div>
                   <span className="bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full border border-yellow-200">
@@ -90,6 +96,25 @@ export default function Dashboard() {
                   </span>
                 </div>
               ))}
+
+              {pendingDesign.map(project => (
+                <div
+                  key={`design-${project.id}`}
+                  onClick={() => navigate(`/approvals/design/${project.id}`)}
+                  className="bg-white border-l-4 border-blue-400 rounded-xl p-5 cursor-pointer hover:shadow-md transition flex justify-between items-center"
+                >
+                  <div>
+                    <h3 className="font-semibold text-gray-800">{project.title}</h3>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      Submitted by {project.user.name} — <span className="font-medium text-blue-700">Design Phase (Draft LMP)</span> awaiting approval
+                    </p>
+                  </div>
+                  <span className="bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1 rounded-full border border-blue-200">
+                    Review →
+                  </span>
+                </div>
+              ))}
+
             </div>
           </div>
         )}

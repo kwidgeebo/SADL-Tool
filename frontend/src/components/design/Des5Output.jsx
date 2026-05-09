@@ -68,6 +68,7 @@ const Table = ({ headers, rows, placeholder }) => (
 
 export default function Des5Output({ designPhase, onSave, onBack, saving }) {
   const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
 
   const des1 = designPhase?.des1InputAnalysis || {}
   const des2 = designPhase?.des2Environments || {}
@@ -81,13 +82,26 @@ export default function Des5Output({ designPhase, onSave, onBack, saving }) {
   const today = new Date().toLocaleDateString("en-AU")
 
   const handleSubmit = async () => {
-    setSubmitting(true)
-    try {
-      await onSave("des5-output", { approvalStatus: "PENDING" })
-    } finally {
-      setSubmitting(false)
-    }
+  setSubmitting(true)
+  try {
+    await onSave("des5-output", { approvalStatus: "PENDING" })
+    // Also call the submit endpoint to set phase status to SUBMITTED
+    const token = localStorage.getItem("sadl_token")
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001"
+    await fetch(`${API_URL}/api/design/${designPhase.projectId}/submit`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    })
+    setSubmitted(true)
+  } catch (err) {
+    console.error("Submit error:", err)
+  } finally {
+    setSubmitting(false)
   }
+}
 
   return (
     <div className="space-y-6">
@@ -449,12 +463,16 @@ export default function Des5Output({ designPhase, onSave, onBack, saving }) {
           ← Back
         </button>
         <button
-          onClick={handleSubmit}
-          disabled={saving || submitting}
-          className="bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-2.5 rounded-lg transition disabled:opacity-50"
-        >
-          {submitting ? "Submitting..." : "Submit Draft LMP for Approval →"}
-        </button>
+            onClick={handleSubmit}
+            disabled={saving || submitting || submitted}
+            className={`font-medium px-8 py-2.5 rounded-lg transition disabled:opacity-50 ${
+              submitted
+                ? "bg-green-100 text-green-700 border border-green-300 cursor-default"
+                : "bg-green-600 hover:bg-green-700 text-white"
+            }`}
+          >
+            {submitted ? "✓ Submitted for Approval" : submitting ? "Submitting..." : "Submit Draft LMP for Approval →"}
+</button>
       </div>
 
     </div>
