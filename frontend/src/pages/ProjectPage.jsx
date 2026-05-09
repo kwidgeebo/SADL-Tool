@@ -92,7 +92,10 @@ export default function ProjectPage() {
             const status = phaseData?.status || "DRAFT"
             const isAnalyse = phase.key === "ANALYSE"
             const isDesign = phase.key === "DESIGN"
-            const isClickable = isAnalyse || isDesign
+            const designPhase = project.phases?.find(p => p.type === "DESIGN")
+            const designApproved = designPhase?.status === "APPROVED"
+            const isDevelop = phase.key === "DEVELOP" && designApproved
+            const isClickable = isAnalyse || isDesign || isDevelop
 
             return (
               <div
@@ -101,7 +104,8 @@ export default function ProjectPage() {
                 onClick={() => {
                   if (isAnalyse) navigate(`/projects/${id}/analyse`)
                   if (isDesign) navigate(`/projects/${id}/design`)
-}}
+                  if (isDevelop) navigate(`/projects/${id}/develop`)
+      }}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-4">

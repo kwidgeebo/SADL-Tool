@@ -119,6 +119,7 @@ model Project {
   phases       Phase[]
   analysePhase AnalysePhase?
   designPhase  DesignPhase? 
+  developPhase DevelopPhase?
 }
 
 model Phase {
@@ -723,6 +724,62 @@ model DesignOutput {
   designPhaseId    String         @unique
   designPhase      DesignPhase    @relation(fields: [designPhaseId], references: [id])
   generatedContent Json?
+  approvalStatus   ApprovalStatus @default(PENDING)
+  approvalComments String?
+}
+
+
+// ===========================
+// DEVELOP PHASE ENUM
+// ===========================
+
+enum PromptType {
+  LESSON_PLAN
+  INSTRUCTOR_GUIDE
+  LEARNER_WORKBOOK
+  PRACTICAL_ACTIVITY
+  STORYBOARD
+  ASSESSMENT_TOOL
+  PRESENTATION_SLIDES
+  COURSE_ADMIN
+}
+
+
+// ===========================
+// DEVELOP PHASE MODELS
+// ===========================
+
+model DevelopPhase {
+  id             String         @id @default(cuid())
+  status         PhaseStatus    @default(DRAFT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  projectId      String         @unique
+  project        Project        @relation(fields: [projectId], references: [id])
+  promptSets     PromptSet[]
+  developOutput  DevelopOutput?
+}
+
+model PromptSet {
+  id             String       @id @default(cuid())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  developPhaseId String
+  developPhase   DevelopPhase @relation(fields: [developPhaseId], references: [id])
+  promptType     PromptType
+  referenceId    String       // LO id, module id, assessment id, or "course"
+  referenceName  String       // Display name — LO name, module name etc
+  notes          String?      // Designer notes on this prompt/output
+  copied         Boolean      @default(false)
+  copiedAt       DateTime?
+}
+
+model DevelopOutput {
+  id               String         @id @default(cuid())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  developPhaseId   String         @unique
+  developPhase     DevelopPhase   @relation(fields: [developPhaseId], references: [id])
   approvalStatus   ApprovalStatus @default(PENDING)
   approvalComments String?
 }
