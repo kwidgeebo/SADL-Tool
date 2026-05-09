@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useSaveStatus } from "../../hooks/useSaveStatus"
 
 const triggers = [
   { key: "triggerLegislative", label: "Legislative Change" },
@@ -12,7 +13,8 @@ const triggers = [
   { key: "triggerOther", label: "Other" },
 ]
 
-export default function A1InputAnalysis({ analysePhase, onSave, onNext, saving }) {
+export default function A1InputAnalysis({ analysePhase, onSave, onNext }) {
+  const { withSaveStatus, buttonText, buttonClass, isDisabled } = useSaveStatus()
   const existing = analysePhase?.inputAnalysis || {}
 
   const [form, setForm] = useState({
@@ -53,9 +55,11 @@ export default function A1InputAnalysis({ analysePhase, onSave, onNext, saving }
   }
 
   const handleSaveAndNext = async () => {
+  await withSaveStatus(async () => {
     await onSave("input-analysis", form)
-    onNext()
-  }
+  })
+  onNext()
+}
 
   return (
     <div className="space-y-8">
@@ -415,12 +419,12 @@ export default function A1InputAnalysis({ analysePhase, onSave, onNext, saving }
 )}
       {/* Navigation */}
       <div className="flex justify-end pt-4 border-t border-gray-100">
-        <button
+       <button
           onClick={handleSaveAndNext}
-          disabled={saving}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition disabled:opacity-50"
+          disabled={isDisabled}
+          className={buttonClass("bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition disabled:opacity-50")}
         >
-          {saving ? "Saving..." : "Save and Continue →"}
+          {buttonText("Save and Continue →")}
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useSaveStatus } from "../../hooks/useSaveStatus"
 
 const difficultyOptions = ["EASY", "STRAIGHTFORWARD", "DIFFICULT", "VERY_DIFFICULT"]
 const frequencyOptions = ["RARELY", "BIANNUALLY", "QUARTERLY", "MONTHLY", "WEEKLY", "DAILY"]
@@ -15,7 +16,8 @@ const emptyTask = {
   subTasks: []
 }
 
-export default function A2JobTaskProfile({ analysePhase, onSave, onNext, onBack, saving }) {
+export default function A2JobTaskProfile({ analysePhase, onSave, onNext, onBack }) {
+  const { withSaveStatus, buttonText, buttonClass, isDisabled } = useSaveStatus()
   const existing = analysePhase?.jobTaskProfile || {}
 
   const [form, setForm] = useState({
@@ -77,9 +79,11 @@ export default function A2JobTaskProfile({ analysePhase, onSave, onNext, onBack,
   }
 
   const handleSaveAndNext = async () => {
+  await withSaveStatus(async () => {
     await onSave("job-task-profile", form)
-    onNext()
-  }
+  })
+  onNext()
+}
 
   return (
     <div className="space-y-8">
@@ -293,12 +297,12 @@ export default function A2JobTaskProfile({ analysePhase, onSave, onNext, onBack,
         >
           ← Back
         </button>
-        <button
+       <button
           onClick={handleSaveAndNext}
-          disabled={saving}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition disabled:opacity-50"
+          disabled={isDisabled}
+          className={buttonClass("bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition disabled:opacity-50")}
         >
-          {saving ? "Saving..." : "Save and Continue →"}
+          {buttonText("Save and Continue →")}
         </button>
       </div>
     </div>

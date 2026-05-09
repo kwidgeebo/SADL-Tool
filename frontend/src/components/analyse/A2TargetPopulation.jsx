@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useSaveStatus } from "../../hooks/useSaveStatus"
 
 const Field = ({ label, name, placeholder, rows = 2, value, onChange }) => (
   <div>
@@ -14,7 +15,8 @@ const Field = ({ label, name, placeholder, rows = 2, value, onChange }) => (
   </div>
 )
 
-export default function A2TargetPopulation({ analysePhase, onSave, onNext, onBack, saving }) {
+export default function A2TargetPopulation({ analysePhase, onSave, onNext, onBack }) {
+  const { withSaveStatus, buttonText, buttonClass, isDisabled } = useSaveStatus()
   const existing = analysePhase?.targetPopulation || {}
 
   const [form, setForm] = useState({
@@ -42,7 +44,9 @@ export default function A2TargetPopulation({ analysePhase, onSave, onNext, onBac
   }
 
   const handleSaveAndNext = async () => {
-    await onSave("target-population", form)
+    await withSaveStatus(async () => {
+      await onSave("target-population", form)
+    })
     onNext()
   }
 
@@ -91,12 +95,12 @@ export default function A2TargetPopulation({ analysePhase, onSave, onNext, onBac
           ← Back
         </button>
         <button
-          onClick={handleSaveAndNext}
-          disabled={saving}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save and Continue →"}
-        </button>
+  onClick={handleSaveAndNext}
+  disabled={isDisabled}
+  className={buttonClass("bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition disabled:opacity-50")}
+>
+  {buttonText("Save and Continue →")}
+</button>
       </div>
     </div>
   )

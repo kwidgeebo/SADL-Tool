@@ -6,6 +6,7 @@ import ProjectPage from "./pages/ProjectPage"
 import AnalysePhasePage from "./pages/AnalysePhasePage"
 import ApprovalReviewPage from "./pages/ApprovalReviewPage"
 import ProtectedRoute from "./components/ProtectedRoute"
+import DesignPhasePage from "./pages/DesignPhasePage"
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/projects/:id" element={<ProtectedRoute><ProjectPage /></ProtectedRoute>} />
       <Route path="/projects/:id/analyse" element={<ProtectedRoute><AnalysePhasePage /></ProtectedRoute>} />
       <Route path="/approvals/analyse/:projectId" element={<ProtectedRoute><ApprovalReviewPage /></ProtectedRoute>} />
+      <Route path="/projects/:id/design" element={<ProtectedRoute><DesignPhasePage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )

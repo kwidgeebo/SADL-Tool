@@ -91,12 +91,17 @@ export default function ProjectPage() {
             const phaseData = project.phases?.find(p => p.type === phase.key)
             const status = phaseData?.status || "DRAFT"
             const isAnalyse = phase.key === "ANALYSE"
+            const isDesign = phase.key === "DESIGN"
+            const isClickable = isAnalyse || isDesign
 
             return (
               <div
                 key={phase.key}
-                className={`bg-white rounded-2xl border p-6 ${isAnalyse ? "cursor-pointer hover:shadow-md transition" : "opacity-60"} ${statusColors[status]}`}
-                onClick={() => isAnalyse && navigate(`/projects/${id}/analyse`)}
+                className={`bg-white rounded-2xl border p-6 ${isClickable ? "cursor-pointer hover:shadow-md transition" : "opacity-60"} ${statusColors[status]}`}
+                onClick={() => {
+                  if (isAnalyse) navigate(`/projects/${id}/analyse`)
+                  if (isDesign) navigate(`/projects/${id}/design`)
+}}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-4">

@@ -17,6 +17,7 @@ app.use('/api/auth', require('./src/routes/auth'))
 app.use('/api/projects', require('./src/routes/projects'))
 app.use('/api/analyse', require('./src/routes/analyse'))
 app.use('/api/approvals', require('./src/routes/approvals'))
+app.use('/api/design', require('./src/routes/designRoutes'))
 
 console.log('Auth routes loaded')
 

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { openDocument } from "./DocumentGenerator"
+import { useSaveStatus } from "../../hooks/useSaveStatus"
 
 const optionTypeLabel = {
   NO_ACTION: "No Action",
@@ -20,7 +21,8 @@ const triggers = [
   { key: "triggerOther", label: "Other" },
 ]
 
-export default function A4AnalyseOutput({ analysePhase, onSave, onBack, onSubmit, saving }) {
+export default function A4AnalyseOutput({ analysePhase, onSave, onBack, onSubmit }) {
+  const { withSaveStatus, buttonText, buttonClass, isDisabled } = useSaveStatus()
   const existing = analysePhase?.analyseOutput || {}
   const feasibility = analysePhase?.feasibilityReport
   const inputAnalysis = analysePhase?.inputAnalysis || {}
@@ -33,17 +35,13 @@ export default function A4AnalyseOutput({ analysePhase, onSave, onBack, onSubmit
 
   const [outputType, setOutputType] = useState(existing.outputType || suggestedType || "TRS")
   const [showPreview, setShowPreview] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-
+  
   const handleSaveAndSubmit = async () => {
-    setSubmitting(true)
-    try {
-      await onSave("analyse-output", { outputType })
-      await onSubmit()
-    } finally {
-      setSubmitting(false)
-    }
-  }
+  await withSaveStatus(async () => {
+    await onSave("analyse-output", { outputType })
+    await onSubmit()
+  })
+}
 
   const enclosures = {
     TRS: [
@@ -404,12 +402,12 @@ export default function A4AnalyseOutput({ analysePhase, onSave, onBack, onSubmit
             ← Back
           </button>
           <button
-            onClick={handleSaveAndSubmit}
-            disabled={saving || submitting}
-            className="bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-2.5 rounded-lg transition disabled:opacity-50"
-          >
-            {submitting ? "Submitting..." : `Generate ${outputType} and Submit for Approval →`}
-          </button>
+  onClick={handleSaveAndSubmit}
+  disabled={isDisabled}
+  className={buttonClass("bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition disabled:opacity-50")}
+>
+  {buttonText("Submit for Approval →")}
+</button>
         </div>
       </div>
     </div>
