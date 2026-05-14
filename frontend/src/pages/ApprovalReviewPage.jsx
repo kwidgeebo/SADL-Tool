@@ -5,6 +5,25 @@ import { useAuth } from "../context/AuthContext"
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001"
 
+function ReviewSection({ title, children }) {
+  return (
+    <div style={{ backgroundColor: "white", border: "1px solid #e5e1dc", borderLeft: "3px solid #C9A84C", padding: "24px", marginBottom: "12px" }}>
+      <h3 style={{ fontFamily: "'Public Sans', sans-serif", fontWeight: 700, fontSize: "14px", color: "#041534", marginBottom: "16px", paddingBottom: "10px", borderBottom: "1px solid #f0ece8" }}>{title}</h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>{children}</div>
+    </div>
+  )
+}
+
+function ReviewField({ label, value }) {
+  if (!value) return null
+  return (
+    <div>
+      <p style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#75777f", marginBottom: "3px" }}>{label}</p>
+      <p style={{ fontSize: "13px", color: "#1b1b1e", lineHeight: 1.6 }}>{value}</p>
+    </div>
+  )
+}
+
 export default function ApprovalReviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
@@ -14,9 +33,11 @@ export default function ApprovalReviewPage() {
   const [comments, setComments] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const [decision, setDecision] = useState(null)
 
   useEffect(() => {
     fetchReview()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId])
 
   const fetchReview = async () => {
@@ -34,49 +55,38 @@ export default function ApprovalReviewPage() {
   }
 
   const handleApprove = async () => {
-    setSubmitting(true)
-    setError("")
+    setSubmitting(true); setError("")
     try {
       const token = localStorage.getItem("sadl_token")
-      await axios.post(
-        `${API_URL}/api/approvals/analyse/${projectId}/approve`,
-        { comments },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      navigate("/dashboard")
+      await axios.post(`${API_URL}/api/approvals/analyse/${projectId}/approve`, { comments }, { headers: { Authorization: `Bearer ${token}` } })
+      setDecision("approved")
+      setTimeout(() => navigate("/dashboard"), 1500)
     } catch (err) {
       setError(err.response?.data?.message || "Failed to approve")
-    } finally {
-      setSubmitting(false)
-    }
+    } finally { setSubmitting(false) }
   }
 
   const handleReject = async () => {
-    if (!comments.trim()) {
-      setError("Please provide comments explaining why this is being rejected.")
-      return
-    }
-    setSubmitting(true)
-    setError("")
+    if (!comments.trim()) { setError("Please provide comments explaining why this is being rejected."); return }
+    setSubmitting(true); setError("")
     try {
       const token = localStorage.getItem("sadl_token")
-      await axios.post(
-        `${API_URL}/api/approvals/analyse/${projectId}/reject`,
-        { comments },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      navigate("/dashboard")
+      await axios.post(`${API_URL}/api/approvals/analyse/${projectId}/reject`, { comments }, { headers: { Authorization: `Bearer ${token}` } })
+      setDecision("rejected")
+      setTimeout(() => navigate("/dashboard"), 1500)
     } catch (err) {
       setError(err.response?.data?.message || "Failed to reject")
-    } finally {
-      setSubmitting(false)
-    }
+    } finally { setSubmitting(false) }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p className="text-gray-500">Loading review...</p>
+      <div style={{ minHeight: "100vh", backgroundColor: "#f4f2ee", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: "32px", height: "32px", border: "2px solid rgba(201,168,76,0.2)", borderTopColor: "#C9A84C", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 12px" }} />
+          <p style={{ fontSize: "13px", color: "#75777f" }}>Loading review...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
       </div>
     )
   }
@@ -84,34 +94,35 @@ export default function ApprovalReviewPage() {
   const { analysePhase, project } = data || {}
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm px-8 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/dashboard")} className="text-gray-500 hover:text-gray-700 text-sm">
-            ← Dashboard
-          </button>
-          <span className="text-gray-300">/</span>
-          <h1 className="text-lg font-bold text-gray-800">Analyse Phase Review</h1>
+    <div style={{ minHeight: "100vh", backgroundColor: "#f4f2ee", fontFamily: "'Inter', sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Public+Sans:wght@600;700&family=IBM+Plex+Sans:wght@600&display=swap');`}</style>
+
+      <header style={{ backgroundColor: "#041534", borderBottom: "1px solid rgba(201,168,76,0.2)" }}>
+        <nav style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px", height: "64px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <button onClick={() => navigate("/dashboard")} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'IBM Plex Sans', sans-serif", fontSize: "10px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", transition: "color 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.color = "#C9A84C"} onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.45)"}>
+              ← Dashboard
+            </button>
+            <span style={{ color: "rgba(201,168,76,0.25)" }}>|</span>
+            <span style={{ fontFamily: "'Public Sans', sans-serif", fontWeight: 700, fontSize: "15px", color: "white" }}>Analyse Phase Review</span>
+          </div>
+          <span style={{ backgroundColor: "rgba(201,168,76,0.12)", color: "#C9A84C", border: "1px solid rgba(201,168,76,0.25)", fontFamily: "'IBM Plex Sans', sans-serif", fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 12px" }}>
+            Awaiting Approval
+          </span>
+        </nav>
+      </header>
+
+      <div style={{ backgroundColor: "#0a1e3d", borderBottom: "1px solid rgba(201,168,76,0.12)", padding: "20px 24px" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+          <p style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C9A84C", marginBottom: "4px" }}>Submission for Review</p>
+          <h1 style={{ fontFamily: "'Public Sans', sans-serif", fontWeight: 700, fontSize: "20px", color: "white", marginBottom: "4px" }}>{project?.title}</h1>
+          <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)" }}>Submitted by {project?.user?.name} ({project?.user?.email})</p>
         </div>
-        <span className="bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full border border-yellow-200">
-          Awaiting Approval
-        </span>
-      </nav>
+      </div>
 
-      <main className="max-w-4xl mx-auto px-8 py-10">
+      <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 24px" }}>
 
-        {/* Project Info */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-1">{project?.title}</h2>
-          <p className="text-sm text-gray-500">
-            Submitted by <span className="font-medium">{project?.user?.name}</span> ({project?.user?.email})
-          </p>
-          {project?.description && (
-            <p className="text-gray-600 mt-2 text-sm">{project.description}</p>
-          )}
-        </div>
-
-        {/* A1 Input Analysis */}
         {analysePhase?.inputAnalysis && (
           <ReviewSection title="A1 — Input Analysis">
             <ReviewField label="Project Background" value={analysePhase.inputAnalysis.projectBackground} />
@@ -122,26 +133,22 @@ export default function ApprovalReviewPage() {
           </ReviewSection>
         )}
 
-        {/* A2 Job Task Profile */}
         {analysePhase?.jobTaskProfile && (
           <ReviewSection title="A2 — Job Task Profile">
             <ReviewField label="Job Title" value={analysePhase.jobTaskProfile.jobTitle} />
             <ReviewField label="Job Description" value={analysePhase.jobTaskProfile.jobDescription} />
             <ReviewField label="Organisational Context" value={analysePhase.jobTaskProfile.organisationalContext} />
             {analysePhase.jobTaskProfile.tasks?.map((task, i) => (
-              <div key={i} className="bg-gray-50 rounded-lg p-4 mt-2">
-                <p className="text-sm font-medium text-gray-700">Task {i + 1}: {task.taskDescription}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  D: {task.difficulty} | F: {task.frequency} | I: {task.importance}
-                </p>
-                {task.conditions && <p className="text-xs text-gray-500">Conditions: {task.conditions}</p>}
-                {task.standards && <p className="text-xs text-gray-500">Standards: {task.standards}</p>}
+              <div key={i} style={{ backgroundColor: "#f5f3f0", border: "1px solid #e5e1dc", padding: "12px 16px" }}>
+                <p style={{ fontSize: "13px", fontWeight: 600, color: "#041534", marginBottom: "4px" }}>Task {i + 1}: {task.taskDescription}</p>
+                <p style={{ fontSize: "11px", color: "#75777f" }}>D: {task.difficulty} | F: {task.frequency} | I: {task.importance}</p>
+                {task.conditions && <p style={{ fontSize: "11px", color: "#75777f", marginTop: "2px" }}>Conditions: {task.conditions}</p>}
+                {task.standards && <p style={{ fontSize: "11px", color: "#75777f", marginTop: "2px" }}>Standards: {task.standards}</p>}
               </div>
             ))}
           </ReviewSection>
         )}
 
-        {/* A2 Target Population */}
         {analysePhase?.targetPopulation && (
           <ReviewSection title="A2 — Target Population Profile">
             <ReviewField label="Job Designation" value={analysePhase.targetPopulation.jobDesignation} />
@@ -152,7 +159,6 @@ export default function ApprovalReviewPage() {
           </ReviewSection>
         )}
 
-        {/* A2 Gap Analysis */}
         {analysePhase?.gapAnalysis && (
           <ReviewSection title="A2 — Gap Analysis Statement">
             <ReviewField label="Gap Exists" value={analysePhase.gapAnalysis.gapExists ? "Yes" : "No"} />
@@ -162,97 +168,67 @@ export default function ApprovalReviewPage() {
           </ReviewSection>
         )}
 
-        {/* A3 Feasibility */}
         {analysePhase?.feasibilityReport && (
           <ReviewSection title="A3 — Feasibility Analysis Report">
             <ReviewField label="Recommendation" value={analysePhase.feasibilityReport.recommendation} />
             <ReviewField label="Units Consulted" value={analysePhase.feasibilityReport.unitsConsulted} />
             {analysePhase.feasibilityReport.options?.map((opt, i) => (
-              <div key={i} className={`rounded-lg p-4 mt-2 ${opt.recommended ? "bg-blue-50 border border-blue-200" : "bg-gray-50"}`}>
-                <p className="text-sm font-medium text-gray-700">
-                  {opt.recommended && "⭐ "}{opt.optionType.replace(/_/g, " ")}
-                </p>
-                {opt.optionDescription && <p className="text-xs text-gray-600 mt-1">{opt.optionDescription}</p>}
-                {opt.advantages && <p className="text-xs text-green-700 mt-1">✓ {opt.advantages}</p>}
-                {opt.disadvantages && <p className="text-xs text-red-600 mt-1">✗ {opt.disadvantages}</p>}
+              <div key={i} style={{ backgroundColor: opt.recommended ? "rgba(201,168,76,0.06)" : "#f5f3f0", border: `1px solid ${opt.recommended ? "rgba(201,168,76,0.25)" : "#e5e1dc"}`, borderLeft: opt.recommended ? "3px solid #C9A84C" : "3px solid #e5e1dc", padding: "12px 16px" }}>
+                <p style={{ fontSize: "13px", fontWeight: 600, color: "#041534", marginBottom: "4px" }}>{opt.recommended && "★ "}{opt.optionType.replace(/_/g, " ")}</p>
+                {opt.optionDescription && <p style={{ fontSize: "12px", color: "#45464e", marginTop: "4px" }}>{opt.optionDescription}</p>}
+                {opt.advantages && <p style={{ fontSize: "12px", color: "#546435", marginTop: "4px" }}>✓ {opt.advantages}</p>}
+                {opt.disadvantages && <p style={{ fontSize: "12px", color: "#ba1a1a", marginTop: "4px" }}>✕ {opt.disadvantages}</p>}
               </div>
             ))}
           </ReviewSection>
         )}
 
-        {/* A4 Output */}
         {analysePhase?.analyseOutput && (
           <ReviewSection title="A4 — Proposed Output">
-            <ReviewField
-              label="Output Type"
-              value={analysePhase.analyseOutput.outputType === "TRS"
-                ? "AP9 — Training Requirement Specification (TRS)"
-                : "AP8 — Learning and Development Strategy (LDS)"}
-            />
+            <ReviewField label="Output Type" value={analysePhase.analyseOutput.outputType === "TRS" ? "AP9 — Training Requirement Specification (TRS)" : "AP8 — Learning and Development Strategy (LDS)"} />
           </ReviewSection>
         )}
 
         {/* Approval Decision */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 mt-6">
-          <h3 className="font-bold text-gray-800 mb-4">Approval Decision</h3>
+        <div style={{ backgroundColor: "white", border: "1px solid #e5e1dc", borderTop: "3px solid #041534", padding: "28px", marginTop: "8px" }}>
+          <h3 style={{ fontFamily: "'Public Sans', sans-serif", fontWeight: 700, fontSize: "16px", color: "#041534", marginBottom: "20px" }}>Approval Decision</h3>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
-              {error}
+          {decision && (
+            <div style={{ backgroundColor: decision === "approved" ? "rgba(84,100,53,0.08)" : "rgba(186,26,26,0.06)", border: `1px solid ${decision === "approved" ? "rgba(84,100,53,0.2)" : "rgba(186,26,26,0.15)"}`, padding: "12px 16px", marginBottom: "16px" }}>
+              <p style={{ fontSize: "13px", color: decision === "approved" ? "#546435" : "#ba1a1a", fontWeight: 600 }}>
+                {decision === "approved" ? "✓ Approved — redirecting to dashboard..." : "✕ Rejected — redirecting to dashboard..."}
+              </p>
             </div>
           )}
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Comments {analysePhase?.status !== "APPROVED" && <span className="text-red-500">(required for rejection)</span>}
+          {error && (
+            <div style={{ backgroundColor: "rgba(186,26,26,0.06)", border: "1px solid rgba(186,26,26,0.15)", borderLeft: "3px solid #ba1a1a", padding: "10px 14px", marginBottom: "16px" }}>
+              <p style={{ fontSize: "13px", color: "#ba1a1a" }}>{error}</p>
+            </div>
+          )}
+
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: "10px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#45464e", display: "block", marginBottom: "6px" }}>
+              Comments <span style={{ color: "#ba1a1a" }}>(required for rejection)</span>
             </label>
-            <textarea
-              value={comments}
-              onChange={(e) => setComments(e.target.value)}
-              rows={4}
+            <textarea value={comments} onChange={e => setComments(e.target.value)} rows={4}
               placeholder="Add any comments, feedback or reasons for your decision..."
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{ width: "100%", border: "1px solid #c5c6cf", padding: "10px 14px", fontSize: "14px", fontFamily: "'Inter', sans-serif", outline: "none", borderRadius: "2px", resize: "vertical" }}
+              onFocus={e => { e.target.style.borderColor = "#C9A84C"; e.target.style.boxShadow = "0 0 0 2px rgba(201,168,76,0.15)" }}
+              onBlur={e => { e.target.style.borderColor = "#c5c6cf"; e.target.style.boxShadow = "none" }}
             />
           </div>
 
-          <div className="flex gap-3 justify-end">
-            <button
-              onClick={handleReject}
-              disabled={submitting}
-              className="border-2 border-red-300 text-red-600 hover:bg-red-50 font-medium px-6 py-2.5 rounded-lg transition disabled:opacity-50"
-            >
-              {submitting ? "Processing..." : "✗ Reject"}
+          <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+            <button onClick={handleReject} disabled={submitting || !!decision} style={{ padding: "10px 24px", border: "2px solid rgba(186,26,26,0.4)", background: "white", color: "#ba1a1a", fontFamily: "'IBM Plex Sans', sans-serif", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", cursor: submitting || decision ? "default" : "pointer", opacity: submitting || decision ? 0.5 : 1 }}>
+              {submitting ? "Processing..." : "✕ Reject"}
             </button>
-            <button
-              onClick={handleApprove}
-              disabled={submitting}
-              className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2.5 rounded-lg transition disabled:opacity-50"
-            >
+            <button onClick={handleApprove} disabled={submitting || !!decision} style={{ padding: "10px 24px", backgroundColor: submitting || decision ? "#b89a3a" : "#C9A84C", color: "#041534", border: "none", fontFamily: "'IBM Plex Sans', sans-serif", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", cursor: submitting || decision ? "default" : "pointer" }}>
               {submitting ? "Processing..." : "✓ Approve"}
             </button>
           </div>
         </div>
       </main>
-    </div>
-  )
-}
-
-// Helper components
-function ReviewSection({ title, children }) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-4">
-      <h3 className="font-bold text-gray-700 mb-4 pb-2 border-b border-gray-100">{title}</h3>
-      <div className="space-y-3">{children}</div>
-    </div>
-  )
-}
-
-function ReviewField({ label, value }) {
-  if (!value) return null
-  return (
-    <div>
-      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-sm text-gray-800 mt-0.5">{value}</p>
     </div>
   )
 }
