@@ -20,6 +20,7 @@ app.use('/api/approvals', require('./src/routes/approvals'))
 app.use('/api/design', require('./src/routes/designRoutes'))
 app.use('/api/develop', require('./src/routes/developRoutes'))
 app.use('/api/documents', require('./src/routes/documentRoutes'))
+app.use('/api/contact', require('./src/routes/contact'))
 
 console.log('Auth routes loaded')
 

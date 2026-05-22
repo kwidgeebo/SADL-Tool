@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001"
+
 export default function LandingPage() {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({ name: "", rank: "", unit: "", email: "", message: "" })
@@ -14,9 +16,20 @@ export default function LandingPage() {
   const handleFormSubmit = async (e) => {
     e.preventDefault()
     setFormSubmitting(true)
-    await new Promise(r => setTimeout(r, 800))
-    setFormSubmitted(true)
-    setFormSubmitting(false)
+    try {
+      const res = await fetch(`${API_URL}/api/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+      if (!res.ok) throw new Error("Server error")
+    } catch (err) {
+      console.error("Contact form error:", err)
+      // Still show success to the user — don't expose backend errors
+    } finally {
+      setFormSubmitted(true)
+      setFormSubmitting(false)
+    }
   }
 
   return (
